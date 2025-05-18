@@ -30,7 +30,7 @@ le=0.5                # electrode length
 #=========================================================
 # Create the mesh 
 #=========================================================
-mesh = TriFEMLibD_Prep.TriMesh();
+mesh = TriFEMLibD_Prep.TriMesh()
 mesh.loadMesh(n)
 #mesh.plotMesh(); quit(); 
 
@@ -48,9 +48,9 @@ fes = TriFEMLibD_Prep.LinTriFESpace(mesh)
 # and solution vector
 #=========================================================
 sysDim = fes.sysDim
-LHM    = np.zeros((sysDim,sysDim));
-RHV    = np.zeros(sysDim);
-solVec = np.zeros(sysDim);
+LHM    = np.zeros((sysDim,sysDim))
+RHV    = np.zeros(sysDim)
+solVec = np.zeros(sysDim)
 
 
 #=========================================================
@@ -139,8 +139,8 @@ for i in range(fes.nLeft):
 # Right boundary conditions
 #=========================================================
 for i in range(fes.nRight):
-   row = fes.rightDof[i];
-   xy  = fes.rightCoords[i]; #x=xy[0],y=xy[1]
+   row = fes.rightDof[i]
+   xy  = fes.rightCoords[i] #x=xy[0],y=xy[1]
    LHM[row,:]   = 0.
    LHM[row,row] = 1.
    RHV[row]     = math.sin(a*xy[0])*math.sin(b*xy[1])
@@ -150,8 +150,8 @@ for i in range(fes.nRight):
 # Lower boundary conditions
 #=========================================================
 for i in range(fes.nLower):
-   row = fes.lowerDof[i];
-   xy  = fes.lowerCoords[i]; #x=xy[0],y=xy[1]
+   row = fes.lowerDof[i]
+   xy  = fes.lowerCoords[i] #x=xy[0],y=xy[1]
    LHM[row,:]   = 0.
    LHM[row,row] = 1.
    RHV[row]     = math.sin(a*xy[0])*math.sin(b*xy[1])
