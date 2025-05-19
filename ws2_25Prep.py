@@ -87,12 +87,12 @@ for elemIndex in range(mesh.nElem):
     # Retrieve the coordinates and weight of the integration point
     xIP      = elem.ipCoords[ip,0] 
     yIP      = elem.ipCoords[ip,1] 
-    ipWeight = elem.ipWeights[ip];
+    ipWeight = elem.ipWeights[ip]
   
     # Compute the local value of the source term, f
     # ***** For the manufactured solution add the appropriate value below
     # ***** For e.g. sin(z) use math.sin(z)
-    fIP = 0.;
+    fIP = -(a**2+b**2)*math.sin(a*xIP)*math.sin(b*yIP)
 
     # Retrieve other values evaluated at this integration point (ip)
     # - perm is the value of permittivity at this ip
@@ -105,14 +105,15 @@ for elemIndex in range(mesh.nElem):
     perm    = mesh.getPerm(xIP,yIP);      
     psi     = elem.getShapes(xIP,yIP)
     gradPsi = elem.getShapeGradients(xIP,yIP)
-
+   
     # Add this ip's contribution to the integrals in the
     # element vector and matrix
     for i in range(evDim):
       elemVec[i] += ipWeight*psi[i]*fIP;   # Right-hand side of weak form
       for j in range(evDim):
         # ***** Change the line below for the desired left-hand side
-        elemMat[i,j] += ipWeight*perm*psi[i]*psi[j]
+        # elemMat[i,j] += ipWeight*perm*psi[i]*psi[j]
+        elemMat[i,j] += - perm * ipWeight * (gradPsi[i][0] * gradPsi[j][0] + gradPsi[i][1] * gradPsi[j][1])
  
 
   #----------------------------------------------------------------
@@ -161,8 +162,8 @@ for i in range(fes.nLower):
 # Upper boundary conditions
 #=========================================================
 for i in range(fes.nUpper):
-   row = fes.upperDof[i];
-   xy  = fes.upperCoords[i]; #x=xy[0],y=xy[1]
+   row = fes.upperDof[i]
+   xy  = fes.upperCoords[i] #x=xy[0],y=xy[1]
    LHM[row,:]   = 0.
    LHM[row,row] = 1.
    RHV[row]     = math.sin(a*xy[0])*math.sin(b*xy[1])
@@ -180,16 +181,19 @@ solVec = np.linalg.solve(LHM, RHV)
 # to the computed solution at the vertices
 #=========================================================
 sumsq = 0.;
+error = 0.
 uexact = np.zeros(fes.sysDim);
 for i in range(mesh.nVert):
   xy        = mesh.getVertCoords(i);
   uexact[i] = math.sin(a*xy[0])*math.sin(b*xy[1]);
   sumsq    += (solVec[i]-uexact[i])*(solVec[i]-uexact[i])
+  error += solVec[i]-uexact[i]
 
 print ("\n--------------------------------------------");
 print ("Mesh: nVert=",mesh.nVert,"nElem=",mesh.nElem);
 print ("Refinment ratio=",n);
 print ("RMS Error =",math.sqrt(sumsq/mesh.nVert));
+print("Error =", error)
 print ("--------------------------------------------\n");
 
 
@@ -204,5 +208,24 @@ sp2 = fes.plotSoln(ax2,uexact-solVec,"Error")
 fig.colorbar(sp1,ax=ax1)
 fig.colorbar(sp2,ax=ax2)
 #plt.savefig('ndt.png',dpi=250)
-plt.show()
+# plt.show()
 
+sumsq = np.array([0.00393905663801834, 0.0010160694164107731, 0.0002649422239416005,  6.647262133832459e-05])
+n = np.array([1, 1/2, 1/4, 1/8])
+
+log_n = np.log10(n)
+log_sumsq = np.log10(sumsq)
+
+# Fit line in log-log space
+slope, intercept = np.polyfit(log_n, log_sumsq, 1)
+
+print(f"Slope: {slope:.4f}")
+
+fig = plt.figure(figsize = (14, 8))
+plt.plot(n, sumsq)
+plt.xscale('log')
+plt.yscale('log')
+plt.xlabel(r'$\log(\Delta x)$')
+plt.ylabel(r'$\log(\Delta \epsilon)$')
+plt.grid(True)
+plt.show()
