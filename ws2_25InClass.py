@@ -3,36 +3,45 @@
 # AE2220-II: Computational Modelling 
 # Main program for work session 2
 #
-# Line 95:  Definition of f for manufactured solution
-# Line 117: Definition of Ke[i,j]
-#
+# Line 92:  Definition of f for manufactured solution
+# Line 110: Definition of Ke[i,j]
 #
 #=================================================================
-# This code provides a base for computing the Laplace equation
-# with a finite-element method based on triangles 
-# with linear shape functions.
+# This code estimates the electric potential distribution 
+# in a carbon-fibre composite part using the finite element method.
+# Although individual carbon-fibre layers have strongly anisotropic 
+# permittivities, we will assume that enough layers are present in 
+# the part so the the electrostatic field can be determined assuming 
+# a constant permittivity of 1, except in the neighbourhood 
+# of the damage, where it falls rapidly to a small value.
 #=================================================================
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import TriFEMLibD_Prep
+import TriFEMLibD_InClass
 
 #=========================================================
 # Input parameters
 #=========================================================
 n=1                   # Mesh refinement factor
-a=2                   # Manufactured solution a
-b=5                   # Manufactured solution b
-xe1=1.0               # center of first electrode
-xe2=4.0               # center of second electrode
-le=0.5                # electrode length
+dlx=1.0               # Delamination x location
+dll=0.3               # Delamination length
+
+#=========================================================
+# Fixed parameters
+#=========================================================
+xm1=1.0               # Measurement location 1
+xm2=4.0               # Measurement location 2
+
+
 
 #=========================================================
 # Create the mesh 
 #=========================================================
-mesh = TriFEMLibD_Prep.TriMesh()
-mesh.loadMesh(n)
-#mesh.plotMesh(); quit(); 
+mesh = TriFEMLibD_InClass.TriMesh();
+mesh.loadMesh(n,dlx,dll)
+print ("\nMesh: nVert=",mesh.nVert,"nElem=",mesh.nElem);
+#mesh.plotMesh(); 
 
 
 #=========================================================
@@ -40,7 +49,7 @@ mesh.loadMesh(n)
 # This object maps the degrees of freedom in an element
 # to the degrees of freedom of the global vector.
 #=========================================================
-fes = TriFEMLibD_Prep.LinTriFESpace(mesh)
+fes = TriFEMLibD_InClass.LinTriFESpace(mesh)
 
 
 #=========================================================
@@ -48,15 +57,15 @@ fes = TriFEMLibD_Prep.LinTriFESpace(mesh)
 # and solution vector
 #=========================================================
 sysDim = fes.sysDim
-LHM    = np.zeros((sysDim,sysDim))
-RHV    = np.zeros(sysDim)
-solVec = np.zeros(sysDim)
+LHM    = np.zeros((sysDim,sysDim));
+RHV    = np.zeros(sysDim);
+solVec = np.zeros(sysDim);
 
 
 #=========================================================
 # Assemble the global left-hand matrix and
 # right-hand vector by looping over the elements
-print ("\nAssembling system of dimension",sysDim)
+print ("Assembling system of dimension",sysDim);
 #=========================================================
 for elemIndex in range(mesh.nElem):
 
@@ -64,7 +73,7 @@ for elemIndex in range(mesh.nElem):
   # Create a FiniteElement object for 
   # the element with index elemIndex
   #----------------------------------------------------------------
-  elem = TriFEMLibD_Prep.LinTriElement(mesh,elemIndex)
+  elem = TriFEMLibD_InClass.LinTriElement(mesh,elemIndex)
 
   #----------------------------------------------------------------
   # Initialise the element vector and matrix to zero.
@@ -87,12 +96,10 @@ for elemIndex in range(mesh.nElem):
     # Retrieve the coordinates and weight of the integration point
     xIP      = elem.ipCoords[ip,0] 
     yIP      = elem.ipCoords[ip,1] 
-    ipWeight = elem.ipWeights[ip]
-  
+    ipWeight = elem.ipWeights[ip];
+
     # Compute the local value of the source term, f
-    # ***** For the manufactured solution add the appropriate value below
-    # ***** For e.g. sin(z) use math.sin(z)
-    fIP = -(a**2+b**2)*math.sin(a*xIP)*math.sin(b*yIP)
+    fIP = 0.;
 
     # Retrieve other values evaluated at this integration point (ip)
     # - perm is the value of permittivity at this ip
@@ -105,14 +112,15 @@ for elemIndex in range(mesh.nElem):
     perm    = mesh.getPerm(xIP,yIP);      
     psi     = elem.getShapes(xIP,yIP)
     gradPsi = elem.getShapeGradients(xIP,yIP)
-   
+
     # Add this ip's contribution to the integrals in the
     # element vector and matrix
     for i in range(evDim):
       elemVec[i] += ipWeight*psi[i]*fIP;   # Right-hand side of weak form
       for j in range(evDim):
         # ***** Change the line below for the desired left-hand side
-        elemMat[i,j] += - perm * ipWeight * (gradPsi[i][0] * gradPsi[j][0] + gradPsi[i][1] * gradPsi[j][1])
+        elemMat[i,j] -= ipWeight*perm; 
+
  
 
   #----------------------------------------------------------------
@@ -123,110 +131,56 @@ for elemIndex in range(mesh.nElem):
 
 
 #=========================================================
-print ("Applying boundary conditions")
+print ("Applying boundary conditions");
+#=========================================================
 # Left boundary conditions
 #=========================================================
-#fes.printMatVec(LHM,RHV,"beforeConstraints")
 for i in range(fes.nLeft):
    row = fes.leftDof[i];
-   xy  = fes.leftCoords[i]; #x=xy[0],y=xy[1]
    LHM[row,:]   = 0.
    LHM[row,row] = 1.
-   RHV[row]     = math.sin(a*xy[0])*math.sin(b*xy[1])
+   RHV[row]     = 10.
 
-
-#=========================================================
-# Right boundary conditions
-#=========================================================
 for i in range(fes.nRight):
-   row = fes.rightDof[i]
-   xy  = fes.rightCoords[i] #x=xy[0],y=xy[1]
+   row = fes.rightDof[i];
    LHM[row,:]   = 0.
    LHM[row,row] = 1.
-   RHV[row]     = math.sin(a*xy[0])*math.sin(b*xy[1])
+   RHV[row]     = 0.
 
-
-#=========================================================
-# Lower boundary conditions
-#=========================================================
-for i in range(fes.nLower):
-   row = fes.lowerDof[i]
-   xy  = fes.lowerCoords[i] #x=xy[0],y=xy[1]
-   LHM[row,:]   = 0.
-   LHM[row,row] = 1.
-   RHV[row]     = math.sin(a*xy[0])*math.sin(b*xy[1])
 
 
 #=========================================================
-# Upper boundary conditions
-#=========================================================
-for i in range(fes.nUpper):
-   row = fes.upperDof[i]
-   xy  = fes.upperCoords[i] #x=xy[0],y=xy[1]
-   LHM[row,:]   = 0.
-   LHM[row,row] = 1.
-   RHV[row]     = math.sin(a*xy[0])*math.sin(b*xy[1])
-
-
-#=========================================================
-print ("Solving the system")
+print ("Solving the system");
 #=========================================================
 #fes.printMatVec(LHM,RHV,"afterConstraints")
 solVec = np.linalg.solve(LHM, RHV)
 
 
 #=========================================================
-# Compute the error by comparing the exact solution
-# to the computed solution at the vertices
+# Find and output potential and the difference from the
+# reference values at the measurement points 
 #=========================================================
-sumsq = 0.;
-error = 0.
-uexact = np.zeros(fes.sysDim);
-for i in range(mesh.nVert):
-  xy        = mesh.getVertCoords(i);
-  uexact[i] = math.sin(a*xy[0])*math.sin(b*xy[1]);
-  sumsq    += (solVec[i]-uexact[i])*(solVec[i]-uexact[i])
-  error += solVec[i]-uexact[i]
-
-print ("\n--------------------------------------------");
-print ("Mesh: nVert=",mesh.nVert,"nElem=",mesh.nElem);
-print ("Refinment ratio=",n);
-print ("RMS Error =",math.sqrt(sumsq/mesh.nVert));
-print("Error =", error)
-print ("--------------------------------------------\n");
+um1=fes.getLowerBndSoln(solVec,xm1);
+um2=fes.getLowerBndSoln(solVec,xm2);
+print ("\n----------------------------------------");
+print ("n=",n," dlx,dll=( ",dlx," ",dll," )");
+print ("");
+print ("um1 (Potential at xm1) = ",um1);
+print ("um2 (Potential at xm2) = ",um2);
+print ("")
+print ("----------------------------------------\n");
 
 
 #=========================================================
 # Plot the results
 #=========================================================
-fig = plt.figure(figsize=(14,8))
-ax1 = plt.subplot2grid((2,4), (0,0), rowspan=1, colspan=4)
-sp1 = fes.plotSoln(ax1,solVec,"Solution")
-ax2 = plt.subplot2grid((2,4), (1,0), rowspan=1, colspan=4)
-sp2 = fes.plotSoln(ax2,uexact-solVec,"Error")
+fig = plt.figure(figsize=(11,8))
+allPerm = mesh.getAllPerm()
+ax1 = plt.subplot2grid((2,5), (0,0), rowspan=1, colspan=5)
+sp1 = fes.plotSoln(ax1,allPerm,"Permittivity")
+ax2 = plt.subplot2grid((2,5), (1,0), rowspan=1, colspan=5)
+sp2 =fes.plotSolnAndGrad(ax2,solVec,"Solution")
 fig.colorbar(sp1,ax=ax1)
 fig.colorbar(sp2,ax=ax2)
-#plt.savefig('ndt.png',dpi=250)
-# plt.show()
-
-sumsq = np.array([0.00393905663801834, 0.0010160694164107731, 0.0002649422239416005,  6.647262133832459e-05])
-n = np.array([1, 1/2, 1/4, 1/8])
-
-log_n = np.log10(n)
-log_sumsq = np.log10(sumsq)
-
-# Fit line in log-log space
-slope, intercept = np.polyfit(log_n, log_sumsq, 1)
-
-print(f"Slope: {slope:.4f}")
-
-fig = plt.figure(figsize = (14, 8))
-plt.plot(n, sumsq)
-plt.xscale('log')
-plt.yscale('log')
-plt.xlabel(r'$\log(\Delta x)$')
-plt.ylabel(r'$\log(\Delta \epsilon)$')
-plt.grid(True)
+#plt.savefig('ndtl.png',dpi=250)
 plt.show()
-
-print(log_n)
