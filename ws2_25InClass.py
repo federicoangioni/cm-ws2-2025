@@ -23,9 +23,9 @@ import TriFEMLibD_InClass
 # =========================================================
 # Input parameters
 # =========================================================
-n = 4  # Mesh refinement factor
-dlx = 0.0  # Delamination x location
-dll = 0.3  # Delamination length
+n = 1  # Mesh refinement factor
+dlx = -0.9943944     # Delamination x location
+dll = 0.29426552 # Delamination length
 
 # =========================================================
 # Fixed parameters
@@ -178,8 +178,8 @@ fig.colorbar(sp2, ax=ax2)
 plt.show()
 
 
-um1s = [7.912477965947568, 7.89558164058266, 7.891776104053498]
-n = [1, 1 / 2, 1 / 4]
+um1s = [7.891776104053498, 7.89558164058266, 7.912477965947568]
+n = [1 / 4, 1 / 2, 1]
 
 
 log_n = np.log10(n)
@@ -197,7 +197,11 @@ plt.yscale("log")
 plt.xlabel(r"$\log(\Delta x)$")
 plt.ylabel(r"$\log(\Delta \epsilon)$")
 plt.grid(True)
-plt.show()
+
 
 p0 = np.log((um1s[2] - um1s[1]) / (um1s[1] - um1s[0])) / np.log(2)
 print("p_observed is =", p0)
+
+error = (um1s[0] - um1s[1]) / (2**np.round(p0) - 1)
+
+print(error)
