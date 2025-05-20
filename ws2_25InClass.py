@@ -207,3 +207,4 @@ plt.ylabel(r'$\log(\Delta \epsilon)$')
 plt.grid(True)
 plt.show()
 
+p0=np.log((um1s[2]-um1s[1])/(um1s[1]-um1s[0]))/np.log(2);
