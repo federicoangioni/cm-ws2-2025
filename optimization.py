@@ -163,64 +163,12 @@ def optimization(vector):
     
     return error
 
-
+x0 = [4, 0.5]
 bounds = [(-np.inf, np.inf), 
           (0.2, 0.8)]
 
-result = minimize(optimization, x0=[0.0, 0.4], bounds=bounds)
+result = minimize(optimization, x0=x0, bounds=bounds)
 
 print("Optimal dlx, dll:", result.x)
 print("Minimum error:", result.fun)
 
-
-
-
-# print("\n----------------------------------------")
-# print("n=", n, " dlx,dll=( ", dlx, " ", dll, " )")
-# print("")
-# print("um1 (Potential at xm1) = ", um1)
-# print("um2 (Potential at xm2) = ", um2)
-# print("")
-# print("----------------------------------------\n")
-# # =========================================================
-# # Plot the results
-# # =========================================================
-# fig = plt.figure(figsize=(11, 8))
-# allPerm = mesh.getAllPerm()
-# ax1 = plt.subplot2grid((2, 5), (0, 0), rowspan=1, colspan=5)
-# sp1 = fes.plotSoln(ax1, allPerm, "Permittivity")
-# ax2 = plt.subplot2grid((2, 5), (1, 0), rowspan=1, colspan=5)
-# sp2 = fes.plotSolnAndGrad(ax2, solVec, "Solution")
-# fig.colorbar(sp1, ax=ax1)
-# fig.colorbar(sp2, ax=ax2)
-# # plt.savefig('ndtl.png',dpi=250)
-# plt.show()
-
-
-# um1s = [7.891776104053498, 7.89558164058266, 7.912477965947568]
-# n = [1 / 4, 1 / 2, 1]
-
-
-# log_n = np.log10(n)
-# log_sumsq = np.log10(um1s)
-
-# # Fit line in log-log space
-# slope, intercept = np.polyfit(log_n, log_sumsq, 1)
-
-# print(f"Slope: {slope:.4f}")
-
-# fig = plt.figure(figsize=(14, 8))
-# plt.plot(n, um1s)
-# plt.xscale("log")
-# plt.yscale("log")
-# plt.xlabel(r"$\log(\Delta x)$")
-# plt.ylabel(r"$\log(\Delta \epsilon)$")
-# plt.grid(True)
-
-
-# p0 = np.log((um1s[2] - um1s[1]) / (um1s[1] - um1s[0])) / np.log(2)
-# print("p_observed is =", p0)
-
-# error = (um1s[0] - um1s[1]) / (2**np.round(p0) - 1)
-
-# print(error)
