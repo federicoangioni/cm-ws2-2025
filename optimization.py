@@ -162,8 +162,9 @@ def optimization(vector):
     error = (um1 - 8.216964)**2 + (um2 - 1.999271)**2
     
     return error
+# [2.9938, 0.489]e-12
+x0 = [2.9938, 0.48889]
 
-x0 = [2.999, 0.491]
 bounds = [(-np.inf, np.inf), 
           (0.2, 0.8)]
 

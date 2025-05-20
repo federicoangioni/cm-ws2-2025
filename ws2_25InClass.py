@@ -24,7 +24,7 @@ import TriFEMLibD_InClass
 # Input parameters
 # =========================================================
 n = 1  # Mesh refinement factor
-dlx, dll = [2.9989973, 0.49105172]
+dlx, dll = [2.99367589, 0.48923791]
 
 # =========================================================
 # Fixed parameters
