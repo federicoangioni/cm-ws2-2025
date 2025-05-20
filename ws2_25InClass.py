@@ -24,8 +24,7 @@ import TriFEMLibD_InClass
 # Input parameters
 # =========================================================
 n = 1  # Mesh refinement factor
-dlx = -0.9943944     # Delamination x location
-dll = 0.29426552 # Delamination length
+dlx, dll = [2.99984365, 0.49068061]
 
 # =========================================================
 # Fixed parameters

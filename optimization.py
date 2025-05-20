@@ -163,7 +163,7 @@ def optimization(vector):
     
     return error
 
-x0 = [4, 0.5]
+x0 = [2.99984365, 0.49068061]
 bounds = [(-np.inf, np.inf), 
           (0.2, 0.8)]
 
