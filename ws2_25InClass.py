@@ -23,7 +23,7 @@ import TriFEMLibD_InClass
 #=========================================================
 # Input parameters
 #=========================================================
-n=1                   # Mesh refinement factor
+n=4                   # Mesh refinement factor
 dlx=0.0               # Delamination x location
 dll=0.3               # Delamination length
 
@@ -184,3 +184,26 @@ fig.colorbar(sp1,ax=ax1)
 fig.colorbar(sp2,ax=ax2)
 #plt.savefig('ndtl.png',dpi=250)
 plt.show()
+
+
+um1s = [7.912477965947568, 7.89558164058266,  7.891776104053498]
+n = [1, 1/2, 1/4]
+
+
+log_n = np.log10(n)
+log_sumsq = np.log10(um1s)
+
+# Fit line in log-log space
+slope, intercept = np.polyfit(log_n, log_sumsq, 1)
+
+print(f"Slope: {slope:.4f}")
+
+fig = plt.figure(figsize = (14, 8))
+plt.plot(n, um1s)
+plt.xscale('log')
+plt.yscale('log')
+plt.xlabel(r'$\log(\Delta x)$')
+plt.ylabel(r'$\log(\Delta \epsilon)$')
+plt.grid(True)
+plt.show()
+
