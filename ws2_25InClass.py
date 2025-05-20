@@ -184,3 +184,5 @@ fig.colorbar(sp1,ax=ax1)
 fig.colorbar(sp2,ax=ax2)
 #plt.savefig('ndtl.png',dpi=250)
 plt.show()
+
+p0=np.log((um1s[2]-um1s[1])/(um1s[1]-um1s[0]))/np.log(2);
